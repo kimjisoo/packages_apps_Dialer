@@ -27,6 +27,7 @@ import android.os.Vibrator;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
+import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceScreen;
 import android.provider.Settings;
@@ -106,7 +107,12 @@ public class SoundSettingsFragment extends PreferenceFragment
         if (hasVibrator()) {
             mVibrateWhenRinging.setOnPreferenceChangeListener(this);
         } else {
-            getPreferenceScreen().removePreference(mVibrateWhenRinging);
+            PreferenceScreen ps = getPreferenceScreen();
+            Preference inCallVibration = findPreference(
+                    context.getString(R.string.incall_vibration_category_key));
+            ps.removePreference(mVibrateWhenRinging);
+            ps.removePreference(inCallVibration);
+
             mVibrateWhenRinging = null;
         }
 
