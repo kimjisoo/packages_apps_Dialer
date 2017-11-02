@@ -171,6 +171,7 @@ public class InCallPresenter implements CallList.Listener {
         }
       };
   private InCallState mInCallState = InCallState.NO_CALLS;
+  private AccelerometerListener mAccelerometerListener;
   private ProximitySensor mProximitySensor;
   private final PseudoScreenState mPseudoScreenState = new PseudoScreenState();
   private boolean mServiceConnected;
@@ -343,6 +344,8 @@ public class InCallPresenter implements CallList.Listener {
     mExternalCallList = externalCallList;
     externalCallList.addExternalCallListener(mExternalCallNotifier);
     externalCallList.addExternalCallListener(mExternalCallListener);
+
+    mAccelerometerListener = new AccelerometerListener(context);
 
     // This only gets called by the service so this is okay.
     mServiceConnected = true;
@@ -705,6 +708,10 @@ public class InCallPresenter implements CallList.Listener {
     Log.i(this, "Phone switching state: " + oldState + " -> " + newState);
     mInCallState = newState;
 
+    if (!newState.isIncoming() && mAccelerometerListener != null) {
+         mAccelerometerListener.enableSensor(false);
+    }
+
     // notify listeners of new state
     for (InCallStateListener listener : mListeners) {
       Log.d(this, "Notify " + listener + " of state " + mInCallState.toString());
@@ -726,6 +733,10 @@ public class InCallPresenter implements CallList.Listener {
 
     Log.i(this, "Phone switching state: " + oldState + " -> " + newState);
     mInCallState = newState;
+
+    if (newState.isIncoming() && mAccelerometerListener != null) {
+        mAccelerometerListener.enableSensor(true);
+    }
 
     for (IncomingCallListener listener : mIncomingCallListeners) {
       listener.onIncomingCall(oldState, mInCallState, call);
@@ -1390,6 +1401,11 @@ public class InCallPresenter implements CallList.Listener {
         mProximitySensor.tearDown();
       }
       mProximitySensor = null;
+
+      if (mAccelerometerListener != null) {
+         mAccelerometerListener.enableSensor(false);
+      }
+      mAccelerometerListener = null;
 
       if (mStatusBarNotifier != null) {
         removeListener(mStatusBarNotifier);
